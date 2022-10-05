@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   
   
-  <title>日行一善</title>
+  <title>使用maven-shade-plugin來單獨升級dependency | 日行一善</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="打雜日記">
-<meta property="og:type" content="website">
-<meta property="og:title" content="日行一善">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="身為兼差的java開發者, 遇到maven問題時, 總是很崩潰,  這次的問題是要魔改Apache livy這開源框架時, 想單獨對某個maven project中的相依套件做升級, 改完該maven project的pom之後, 還是吃到其他maven project的相依套件, 後來發現可以用maven-shade-plugin來避免相依套件的共用, shade就是影子的意思, 蠻名符其實的!">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用maven-shade-plugin來單獨升級dependency">
+<meta property="og:url" content="http://example.com/2022/10/05/maven-shade/index.html">
 <meta property="og:site_name" content="日行一善">
-<meta property="og:description" content="打雜日記">
+<meta property="og:description" content="身為兼差的java開發者, 遇到maven問題時, 總是很崩潰,  這次的問題是要魔改Apache livy這開源框架時, 想單獨對某個maven project中的相依套件做升級, 改完該maven project的pom之後, 還是吃到其他maven project的相依套件, 後來發現可以用maven-shade-plugin來避免相依套件的共用, shade就是影子的意思, 蠻名符其實的!">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-10-05T09:14:59.000Z">
+<meta property="article:modified_time" content="2022-10-05T09:23:16.158Z">
 <meta property="article:author" content="Roy Chen">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="maven">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="日行一善" type="application/atom+xml">
@@ -75,9 +79,7 @@
 </header>
 
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-maven-shade" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-maven-shade" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/10/05/maven-shade/" class="article-date">
   <time class="dt-published" datetime="2022-10-05T09:14:59.000Z" itemprop="datePublished">2022-10-05</time>
@@ -90,8 +92,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/10/05/maven-shade/">使用maven-shade-plugin來單獨升級dependency</a>
+    <h1 class="p-name article-title" itemprop="headline name">
+      使用maven-shade-plugin來單獨升級dependency
     </h1>
   
 
@@ -115,117 +117,19 @@
     </footer>
   </div>
   
-</article>
-
-
-
+    
+<nav id="article-nav">
   
-    <article id="post-gson-int-issue" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/10/05/gson-int-issue/" class="article-date">
-  <time class="dt-published" datetime="2022-10-05T08:51:48.000Z" itemprop="datePublished">2022-10-05</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/10/05/gson-int-issue/">GSON反序列化時int被轉成float的問題</a>
-    </h1>
+    <a href="/2022/10/05/gson-int-issue/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">GSON反序列化時int被轉成float的問題</div>
+    </a>
   
+</nav>
 
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>GSON是一套Google發佈的Java對json序列化&#x2F;反序列化的lib, java開發者應該都不陌生, 但是可能會遇到int被轉成float的問題, </p>
-<p>例如, 原始的json是</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;test&quot;: 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>GSON轉完變成</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">test: 1.0</span><br></pre></td></tr></table></figure>
-<p>這可能會造成一些非預期的錯誤, 我們預期的結果, 當1轉完還是1, 1.5轉完還是1.5, </p>
-<p>一直以來GSON處理這個問題都是要寫一些type assertion的處理, 例如</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">if(unTypeVal instanceof Number) </span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">if(doubleNum == Math.round(doubleNum))</span><br></pre></td></tr></table></figure>
-
-<p>最終這個問題在2021年發佈的2.8.9版本中有了乾淨解法, </p>
-<p>可以看下面這段code, 初始化gson object時, 可以指定反序列化策略, LONG_OR_DOUBLE顧名思義就是要區分整數或浮點數, 如此一來, 代碼變得超乾淨!</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Gson gson = new GsonBuilder()</span><br><span class="line">        .setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)</span><br><span class="line">        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)</span><br><span class="line">        .create();</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/10/05/gson-int-issue/" data-id="cl8vets0g00006cdn2ic5hxyl" data-title="GSON反序列化時int被轉成float的問題" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/" rel="tag">java</a></li></ul>
-
-    </footer>
-  </div>
   
 </article>
-
-
-
-  
-    <article id="post-java_exec_issue" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/10/04/java_exec_issue/" class="article-date">
-  <time class="dt-published" datetime="2022-10-04T08:02:27.000Z" itemprop="datePublished">2022-10-04</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/10/04/java_exec_issue/">java使用runtime exec調用python程式過慢的解決方式 (改用http)</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>某專案需要在java調用python的一個小程式做一個複雜的字串解析, 由於該解析的lib在其他語言並沒有現成的, 所以先使用系統呼叫, 透過stdout來拿到結果</p>
-<p><code>Runtime.getRuntime().exec(cliStr)</code></p>
-<p>但這樣會有效能問題, 我發現當cpu core數不夠, 且遇到高併發的場景時, 該系統呼叫會變得很慢(接近1s), </p>
-<p>查了一下大概有幾種解法</p>
-<ul>
-<li>使用Jython, 基於jvm上執行python</li>
-<li>起一個輕量python webserver (ex. flask)來專門處理該解析工作</li>
-</ul>
-<p>先講Jython這招吧, 是有試出一個hello world的小實驗, 但卡在目前似乎只支援python2, 且如果python程式需要相依其他python module時, 不知道該如何處理, 所以這招就先不採用</p>
-<p>最後採用http調用python webserver(flask)的方式拿到我們需要的結果, 用此方式可以大大加快系統呼叫的耗時, 我們的情境大概可以快500-700ms (1core, 10併發的複雜字串處理邏輯),</p>
-<p>只是起一個額外的flask需要再處理一些容錯機制, 例如, flask掛掉怎麼辦? 我的做法分兩個面向</p>
-<ul>
-<li>flask api本身邏輯會用try cache捕捉任何錯誤, 回傳空字串</li>
-<li>萬一是網路或資源或任何非預期錯誤時導致調用api失敗時, java這裡會去用原本效能較慢的系統呼叫方式拿到結果, 此外, 會再用系統呼叫嘗試啟動flask, 當flask已經掛了就可以復原, 但flask還活著時, 也會因port已經被占用而直接跳掉啟動程序</li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/10/04/java_exec_issue/" data-id="cl8ve3tm20001lwdngjqu3xpf" data-title="java使用runtime exec調用python程式過慢的解決方式 (改用http)" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/" rel="tag">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/performance/" rel="tag">performance</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
 </section>
